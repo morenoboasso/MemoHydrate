@@ -1,49 +1,78 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
   final FlutterLocalNotificationsPlugin notificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
+  // Timer per il loop periodico delle notifiche
+  late Timer _notificationTimer;
+
+  NotificationService() {
+    // Inizializza il timer con una durata vuota all'avvio
+    _notificationTimer = Timer(Duration.zero, () {});
+  }
   Future<void> initNotification() async {
     AndroidInitializationSettings initializationSettingsAndroid =
     const AndroidInitializationSettings('flutter_logo');
 
-    var initializationSettingsIOS = DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
-        onDidReceiveLocalNotification:
-            (int id, String? title, String? body, String? payload) async {});
-
     var initializationSettings = InitializationSettings(
-        android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
-    await notificationsPlugin.initialize(initializationSettings,
-        onDidReceiveNotificationResponse:
-            (NotificationResponse notificationResponse) async {});
-  }
+      android: initializationSettingsAndroid,
+      iOS: null, // Disabilita iOS
+    );
 
-  Future<void> setNotificationCooldown(int cooldownMinutes) async {
-    // Cancella tutte le notifiche attualmente pianificate
-    //await notificationsPlugin.cancelAll();
-
-    // Calcola il prossimo orario per la notifica
-    DateTime nextNotificationTime =
-    DateTime.now().add(Duration(minutes: cooldownMinutes));
-
-    // Pianifica la notifica
-    await notificationsPlugin.schedule(
-      0, // ID notifica
-      'BMemo Hydrate', // Titolo notifica
-      'È il momento di bere un po\' d\'acqua!', // Testo notifica
-      nextNotificationTime, // Orario in cui visualizzare la notifica
-      await notificationDetails(), // Dettagli notifica
+    await notificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse:
+          (NotificationResponse notificationResponse) async {},
     );
   }
 
-  NotificationDetails notificationDetails() {
-    return const NotificationDetails(
-        android: AndroidNotificationDetails('channelId', 'channelName',
-            importance: Importance.max),
-        iOS: DarwinNotificationDetails());
+  // Funzione per iniziare il loop delle notifiche
+  void startNotificationLoop(int intervalMinutes) {
+    // Cancella il timer esistente prima di avviare uno nuovo
+    _notificationTimer.cancel();
+
+    _notificationTimer = Timer.periodic(
+      Duration(minutes: intervalMinutes),
+          (Timer timer) {
+        _sendNotification(); // Invia una notifica ogni tot minuti
+            debugPrint("Notifica mandata");
+      },
+    );
+  }
+
+
+  // Funzione per inviare la notifica
+  Future<void> _sendNotification() async {
+    DateTime now = DateTime.now();
+
+    // Definisci il colore desiderato
+    Color notificationColor = Colors.lightBlue; // Utilizza il colore bluegrey
+
+    // Invia la notifica con l'aspetto personalizzato
+    await notificationsPlugin.show(
+      0, // ID notifica
+      '❄️ Memo Hydrate ❄️', // Titolo notifica
+      'È il momento di bere un po\' d\'acqua! 💧', // Testo notifica
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'channelId',
+          'channelName',
+          importance: Importance.max,
+          styleInformation: const BigTextStyleInformation(''), // Usa uno stile BigTextStyle per il testo bianco
+          color: notificationColor, // Passa direttamente l'oggetto Color
+          // Altre impostazioni Android se necessario
+        ),
+      ),
+    );
+  }
+
+
+  // Funzione per fermare il loop delle notifiche
+  void stopNotificationLoop() {
+    _notificationTimer.cancel();
   }
 }

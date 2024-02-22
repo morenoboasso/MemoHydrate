@@ -64,6 +64,20 @@ class IntervalInput extends StatelessWidget {
                     onPressed: () {
                       if (intervalloNotificheBere != 0) {
                         onSavePressed();
+
+                        // Mostra un messaggio di avviso
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Intervallo cambiato a $intervalloNotificheBere minuti!',textAlign: TextAlign.center),
+                            duration: const Duration(seconds: 3), // Modifica la durata se necessario
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: Colors.green, // Imposta il colore dello sfondo
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            elevation: 8.0,
+                          ),
+                        );
                       } else {
                         // Mostra una notifica d'errore
                         final snackBar = SnackBar(
