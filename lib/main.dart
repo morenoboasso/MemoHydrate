@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:memo_hydrate/modules/splashscreen.dart';
 import 'package:memo_hydrate/styles/bottomnav.dart';
+import 'notifiche/bere_notifiche.dart';
 import 'tabs/bevi_tab.dart';
 import 'tabs/alzati_tab.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  NotificationService().initNotification();
   runApp(const MaterialApp(
-    home: MyTabs(),
+    home: SplashScreen(),
   ));
 }
 
