@@ -9,8 +9,10 @@ class NotificationService {
 
   // Timer per il loop periodico delle notifiche
   late Timer _notificationTimer;
+  final bool isSilentNotification; // Add isSilent as a parameter
 
-  NotificationService() {
+
+  NotificationService({required this.isSilentNotification}) {
     // Inizializza il timer con una durata vuota all'avvio
     _notificationTimer = Timer(Duration.zero, () {});
   }
@@ -62,9 +64,10 @@ class NotificationService {
           'channelId',
           'channelName',
           importance: Importance.max,
-          styleInformation: const BigTextStyleInformation(''), // Usa uno stile BigTextStyle per il testo bianco
-          color: notificationColor, // Passa direttamente l'oggetto Color
-          // Altre impostazioni Android se necessario
+          silent: isSilentNotification!,
+          priority: Priority.max,
+          styleInformation: const BigTextStyleInformation(''),
+          color: notificationColor,
         ),
       ),
     );
