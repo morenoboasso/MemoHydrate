@@ -13,10 +13,11 @@ class BeviTab extends StatefulWidget {
 
 class _BeviTabState extends State<BeviTab> {
   int intervalloNotificheBere = 2; // Default value
-  bool isSilent = false;
   final NotificationService notificationService;
 
-  _BeviTabState() : notificationService = NotificationService(isSilentNotification: false);
+  bool notificationSound = true;
+
+  _BeviTabState() : notificationService = NotificationService();
 
   @override
   void initState() {
@@ -41,13 +42,13 @@ class _BeviTabState extends State<BeviTab> {
   Future<void> _saveInterval(int interval) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('notificationInterval', interval);
-    print('[MORENO]Saved to shared prefs: $interval minute/s');
+    print('[MORENO BEVI_TAB]Saved to shared prefs: $interval minute/s');
   }
 
   void _startNotificationLoop() {
     // Start the notification loop with the specified interval
-    notificationService.startNotificationLoop(intervalloNotificheBere);
-    print('[MORENO]Notification interval for drinking: $intervalloNotificheBere minute/s');
+    notificationService.startNotificationLoop(intervalloNotificheBere, notificationSound);
+    print('[MORENO BEVI_TAB]Notification interval for drinking: $intervalloNotificheBere minute/s');
   }
 
   @override
@@ -84,21 +85,21 @@ class _BeviTabState extends State<BeviTab> {
             onIntervalChanged: (value) {
               setState(() {
                 intervalloNotificheBere = int.tryParse(value) ?? 0;
-                print('[MORENO] Interval value changed to: $intervalloNotificheBere minute/s');
+                print(
+                    '[MORENO BEVI_TAB]Interval value changed to: $intervalloNotificheBere minute/s');
               });
             },
             onSavePressed: () async {
               // Stop the existing notification loop
               notificationService.stopNotificationLoop();
-              print('[MORENO] You stopped the previous interval');
+              print('[MORENO BEVI_TAB]You stopped the previous interval');
 
-              // Start a new loop with the specified interval
+              // Start a new loop with the specified interval and sound state
               _startNotificationLoop();
-              print('[MORENO]Notification interval for drinking: $intervalloNotificheBere minute/s');
 
               // Save the new interval
               await _saveInterval(intervalloNotificheBere);
-              print('[MORENO] Interval saved: $intervalloNotificheBere minute/s');
+              print('[MORENO BEVI_TAB]Interval saved: $intervalloNotificheBere minute/s');
 
               // Chiudi la tastiera
               FocusManager.instance.primaryFocus?.unfocus();
@@ -106,30 +107,53 @@ class _BeviTabState extends State<BeviTab> {
             labelText: 'Ogni quanti minuti vuoi bere?',
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 30, left: 20, right: 40),
+            padding: const EdgeInsets.only(top: 30, left: 60, right: 40),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Disattiva Suono notifica:',
+                  'Suono notifica:',
                   style: TextStyle(
                     fontSize: 18,
                     color: Colors.black,
                   ),
                 ),
-                Checkbox(
-                  activeColor: Colors.blueGrey,
-                  splashRadius: 0,
-                  checkColor: Colors.white,
-                  value: isSilent,
-                  onChanged: (value) {
-                    setState(() {
-                      notificationService.stopNotificationLoop();
-                      isSilent = value ?? false; // Set isSilent to true if value is true, otherwise set it to false
-                      print('[MORENO] Silent mode set to: $isSilent');
-                      _startNotificationLoop();
-                    });
-                  },
+                Row(
+                  children: [
+                    Icon(
+                      notificationSound ? Icons.volume_up : Icons.volume_off,
+                      color: notificationSound ? Colors.blueGrey : Colors.grey,
+                    ),
+                    Switch(
+                      activeTrackColor: Colors.blueGrey,
+                      value: notificationSound,
+                      inactiveTrackColor: Colors.grey,
+                      inactiveThumbColor: Colors.white,
+                      thumbColor: MaterialStateProperty.resolveWith<Color>(
+                            (Set<MaterialState> states) {
+                          if (states.contains(MaterialState.dragged)) {
+                            return Colors.blueGrey;
+                          }
+                          return notificationSound ? Colors.white : Colors.white;
+                        },
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          notificationSound = value;
+                        });
+
+                        // Stop the existing notification loop
+                        notificationService.stopNotificationLoop();
+                        print('[MORENO BEVI_TAB]You stopped the previous interval');
+
+                        // Start a new loop with the specified interval and sound state
+                        _startNotificationLoop();
+                        print('[MORENO BEVI_TAB]Notification interval for drinking: $intervalloNotificheBere minute/s');
+
+                        print('[MORENO BEVI_TAB] Sound notification is ${notificationSound ? 'enabled' : 'disabled'}');
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),

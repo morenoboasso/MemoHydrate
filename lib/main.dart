@@ -8,14 +8,14 @@ import 'tabs/alzati_tab.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  NotificationService(isSilentNotification: false).initNotification();
+  NotificationService().initNotification();
   runApp(const MaterialApp(
     home: SplashScreen(),
   ));
 }
 
 class MyTabs extends StatefulWidget {
-  const MyTabs({Key? key}) : super(key: key);
+  const MyTabs({super.key});
 
   @override
   _MyTabsState createState() => _MyTabsState();

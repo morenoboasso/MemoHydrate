@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -7,13 +7,10 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin notificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
-  // Timer per il loop periodico delle notifiche
   late Timer _notificationTimer;
-  final bool isSilentNotification; // Add isSilent as a parameter
+  int _notificationIdCounter = 0;
 
-
-  NotificationService({required this.isSilentNotification}) {
-    // Inizializza il timer con una durata vuota all'avvio
+  NotificationService() {
     _notificationTimer = Timer(Duration.zero, () {});
   }
   Future<void> initNotification() async {
@@ -22,7 +19,6 @@ class NotificationService {
 
     var initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
-      iOS: null, // Disabilita iOS
     );
 
     await notificationsPlugin.initialize(
@@ -33,41 +29,48 @@ class NotificationService {
   }
 
   // Funzione per iniziare il loop delle notifiche
-  void startNotificationLoop(int intervalMinutes) {
+  void startNotificationLoop(int intervalMinutes, bool notificationSound) {
     // Cancella il timer esistente prima di avviare uno nuovo
     _notificationTimer.cancel();
 
     _notificationTimer = Timer.periodic(
       Duration(minutes: intervalMinutes),
           (Timer timer) {
-        _sendNotification(); // Invia una notifica ogni tot minuti
-            debugPrint("Notifica mandata");
+        _sendNotification(notificationSound, timer.tick);
+        debugPrint(
+            "[MORENO - bere_notifiche] Notifica mandata");
       },
     );
   }
 
+  Future<void> _sendNotification(bool notificationSound, int tick) async {
+    // Incrementa il contatore prima di utilizzarlo come ID univoco per la notifica
+    _notificationIdCounter++;
 
-  // Funzione per inviare la notifica
-  Future<void> _sendNotification() async {
-    DateTime now = DateTime.now();
+    // Messaggio di debug con ID della notifica
+    debugPrint(
+        '[MORENO - bere_notifiche] Notifica mandata id:$_notificationIdCounter con sound ${notificationSound ? 'enabled' : 'disabled'}');
 
-    // Definisci il colore desiderato
-    Color notificationColor = Colors.lightBlue; // Utilizza il colore bluegrey
+    // Imposta un canale univoco per ogni notifica
+    String channelId = 'channelId_$_notificationIdCounter';
 
-    // Invia la notifica con l'aspetto personalizzato
     await notificationsPlugin.show(
-      0, // ID notifica
-      '❄️ Memo Hydrate ❄️', // Titolo notifica
-      'È il momento di bere un po\' d\'acqua! 💧', // Testo notifica
+      _notificationIdCounter, // Utilizza il nuovo ID notifica
+      '❄️ Memo Hydrate ❄️',
+      'È il momento di bere un po\' d\'acqua! 💧',
       NotificationDetails(
         android: AndroidNotificationDetails(
-          'channelId',
+          channelId,
           'channelName',
           importance: Importance.max,
-          silent: isSilentNotification!,
           priority: Priority.max,
           styleInformation: const BigTextStyleInformation(''),
-          color: notificationColor,
+          playSound: notificationSound ? true : false,
+          sound: notificationSound
+              ? const RawResourceAndroidNotificationSound('glass')
+              : const RawResourceAndroidNotificationSound('silent'),
+          enableVibration: true,
+          vibrationPattern: Int64List.fromList([500, 500, 500]),
         ),
       ),
     );
