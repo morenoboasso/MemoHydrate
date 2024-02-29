@@ -70,7 +70,7 @@ class NotificationService {
               ? null
               : const RawResourceAndroidNotificationSound('silent'),
           enableVibration: true,
-          vibrationPattern: Int64List.fromList([500, 500, 500]),
+          vibrationPattern: Int64List.fromList([1500, 250, 500]),
         ),
       ),
     );

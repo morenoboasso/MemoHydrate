@@ -14,8 +14,9 @@ class BeviTab extends StatefulWidget {
 class _BeviTabState extends State<BeviTab> {
   late TextEditingController intervalController;
   final NotificationService notificationService;
-  int intervalloNotificheBere = 2;
+  int intervalloNotificheBere = 20;
   bool notificationSound = true;
+  bool serviceActive = true;
 
   _BeviTabState() : notificationService = NotificationService();
 
@@ -37,7 +38,7 @@ class _BeviTabState extends State<BeviTab> {
     int savedInterval = prefs.getInt('notificationInterval') ?? 1;
     setState(() {
       intervalloNotificheBere = savedInterval;
-      intervalController.text = savedInterval.toString(); // Add this line
+      intervalController.text = savedInterval.toString();
       debugPrint('Loaded from shared prefs: $intervalloNotificheBere minute/s');
     });
   }
@@ -49,11 +50,15 @@ class _BeviTabState extends State<BeviTab> {
   }
 
   void _startNotificationLoop() {
-    // Start the notification loop with the specified interval
-    notificationService.startNotificationLoop(
-        intervalloNotificheBere, notificationSound);
-    debugPrint(
-        '[MORENO BEVI_TAB]Notification interval for drinking: $intervalloNotificheBere minute/s');
+    if (serviceActive) {
+      notificationService.startNotificationLoop(
+          intervalloNotificheBere, notificationSound);
+      debugPrint(
+          '[MORENO BEVI_TAB]Notification interval for drinking: $intervalloNotificheBere minute/s');
+    } else {
+      notificationService.stopNotificationLoop();
+      debugPrint('[MORENO BEVI_TAB]Notification loop stopped');
+    }
   }
 
   @override
@@ -104,8 +109,12 @@ class _BeviTabState extends State<BeviTab> {
 
               // Save the new interval
               await _saveInterval(intervalloNotificheBere);
-              debugPrint(
-                  '[MORENO BEVI_TAB]Interval saved: $intervalloNotificheBere minute/s');
+              debugPrint('[MORENO BEVI_TAB]Interval saved and started: $intervalloNotificheBere minute/s');
+
+              // Imposta lo switch su true (attivo)
+              setState(() {
+                serviceActive = true;
+              });
 
               // Chiudi la tastiera
               FocusManager.instance.primaryFocus?.unfocus();
@@ -115,55 +124,101 @@ class _BeviTabState extends State<BeviTab> {
           ),
           Padding(
             padding: const EdgeInsets.only(top: 30, left: 60, right: 40),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
               children: [
-                const Text(
-                  'Suono notifica:',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.black,
-                  ),
-                ),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(
-                      notificationSound ? Icons.volume_up : Icons.volume_off,
-                      color: notificationSound ? Colors.blueGrey : Colors.grey,
-                    ),
-                    Switch(
-                      activeTrackColor: Colors.blueGrey,
-                      value: notificationSound,
-                      inactiveTrackColor: Colors.grey,
-                      inactiveThumbColor: Colors.white,
-                      thumbColor: MaterialStateProperty.resolveWith<Color>(
-                        (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.dragged)) {
-                            return Colors.blueGrey;
-                          }
-                          return notificationSound
-                              ? Colors.white
-                              : Colors.white;
-                        },
+                    const Text(
+                      'Suono notifica:',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.black,
                       ),
-                      onChanged: (value) {
-                        setState(() {
-                          notificationSound = value;
-                        });
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          notificationSound ? Icons.volume_up : Icons.volume_off,
+                          color: notificationSound ? Colors.blueGrey : Colors.grey,
+                        ),
+                        Switch(
+                          activeTrackColor: Colors.blueGrey,
+                          value: notificationSound,
+                          inactiveTrackColor: Colors.grey,
+                          inactiveThumbColor: Colors.white,
+                          thumbColor: MaterialStateProperty.resolveWith<Color>(
+                                (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.dragged)) {
+                                return Colors.blueGrey;
+                              }
+                              return notificationSound
+                                  ? Colors.white
+                                  : Colors.white;
+                            },
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              notificationSound = value;
+                            });
 
-                        // Stop the existing notification loop
-                        notificationService.stopNotificationLoop();
-                        debugPrint(
-                            '[MORENO BEVI_TAB]You stopped the previous interval');
+                            // Stop the existing notification loop
+                            notificationService.stopNotificationLoop();
+                            debugPrint(
+                                '[MORENO BEVI_TAB]You stopped the previous interval');
 
-                        // Start a new loop with the specified interval and sound state
-                        _startNotificationLoop();
-                        debugPrint(
-                            '[MORENO BEVI_TAB]Notification interval for drinking: $intervalloNotificheBere minute/s');
+                            // Start a new loop with the specified interval and sound state
+                            _startNotificationLoop();
+                            debugPrint(
+                                '[MORENO BEVI_TAB]Notification interval for drinking: $intervalloNotificheBere minute/s');
 
-                        debugPrint(
-                            '[MORENO BEVI_TAB] Sound notification is ${notificationSound ? 'enabled' : 'disabled'}');
-                      },
+                            debugPrint(
+                                '[MORENO BEVI_TAB] Sound notification is ${notificationSound ? 'enabled' : 'disabled'}');
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Notifiche:',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.black,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          serviceActive ? Icons.notifications : Icons.notifications_off,
+                          color: serviceActive ? Colors.blueGrey : Colors.grey,
+                        ),
+                        Switch(
+                          activeTrackColor: Colors.blueGrey,
+                          value: serviceActive,
+                          inactiveTrackColor: Colors.grey,
+                          inactiveThumbColor: Colors.white,
+                          thumbColor: MaterialStateProperty.resolveWith<Color>(
+                                (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.dragged)) {
+                                return Colors.blueGrey;
+                              }
+                              return serviceActive ? Colors.white : Colors.white;
+                            },
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              serviceActive = value;
+                            });
+                            notificationService.stopNotificationLoop();
+                            _startNotificationLoop();
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),

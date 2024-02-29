@@ -16,9 +16,10 @@ class CustomBottomNavBar extends StatelessWidget {
     return Stack(
       children: [
         BottomNavigationBar(
+          backgroundColor: Colors.blueGrey,
           iconSize: 20,
           elevation: 10,
-          selectedItemColor: Colors.blueAccent,
+          selectedItemColor: Colors.white,
           unselectedItemColor: Colors.grey,
           currentIndex: selectedIndex,
           onTap: onTabTapped,
