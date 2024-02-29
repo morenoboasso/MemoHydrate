@@ -28,7 +28,7 @@ class IntervalInput extends StatelessWidget {
             children: [
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 30),
+                  padding: const EdgeInsets.only(left: 50),
                   child: SizedBox(
                     height: 50,
                     child: TextFormField(
@@ -62,19 +62,19 @@ class IntervalInput extends StatelessWidget {
               ),
               SizedBox(
                 child: Padding(
-                  padding: const EdgeInsets.only(right: 20.0),
+                  padding: const EdgeInsets.only(right: 30.0),
                   child: ElevatedButton(
                     onPressed: () {
                       int newInterval = int.tryParse(intervalController.text) ?? 0;
-                      // Accept only values from 15 to 1440 , per test metti 1
+                      // Accept only values from 15 to 1440
                       if (newInterval >= 1 && newInterval <= 1440) {
                         onSavePressed();
 
                         // Show a success message
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(formatIntervalMessage(newInterval)),
-                            duration: const Duration(seconds: 3),
+                            content: const Text('Intervallo cambiato con successo'),
+                            duration: const Duration(seconds: 2),
                             behavior: SnackBarBehavior.floating,
                             backgroundColor: Colors.green,
                             shape: RoundedRectangleBorder(
@@ -138,24 +138,6 @@ class IntervalInput extends StatelessWidget {
         ],
       ),
     );
-  }
-  String formatIntervalMessage(int minutes) {
-    if (minutes > 60) {
-      int hours = minutes ~/ 60;
-      int remainingMinutes = minutes % 60;
-
-      String hoursText = hours == 1 ? 'hour' : 'hours';
-      String minutesText = remainingMinutes == 1 ? 'minute' : 'minutes';
-
-      if (remainingMinutes == 0) {
-        return 'Intervallo settato su: $hours $hoursText';
-      } else {
-        return 'Intervallo settato su: $hours $hoursText and ${remainingMinutes.toString().padLeft(2)} $minutesText';
-      }
-    } else {
-      String minutesText = minutes == 1 ? 'minute' : 'minutes';
-      return 'Intervallo settato su: $minutes $minutesText';
-    }
   }
 
 

@@ -51,7 +51,7 @@ class CustomBottomNavBar extends StatelessWidget {
               height: 50,
             ),
           )
-       // ),
+        ),
       ],
     );
   }
