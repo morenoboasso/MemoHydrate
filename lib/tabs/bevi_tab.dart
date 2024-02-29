@@ -17,8 +17,23 @@ class _BeviTabState extends State<BeviTab> {
   int intervalloNotificheBere = 20;
   bool notificationSound = true;
   bool serviceActive = true;
-
   _BeviTabState() : notificationService = NotificationService();
+
+  Future<void> _loadSavedSwitchesState() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool savedNotificationSound = prefs.getBool('notificationSound') ?? true;
+    bool savedServiceActive = prefs.getBool('serviceActive') ?? true;
+    setState(() {
+      notificationSound = savedNotificationSound;
+      serviceActive = savedServiceActive;
+      debugPrint('[MORENO SHARED PREF] Loaded switches state from shared prefs');
+    });
+  }
+  Future<void> _saveSwitchesState() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notificationSound', notificationSound);
+    await prefs.setBool('serviceActive', serviceActive);
+  }
 
   @override
   void initState() {
@@ -26,6 +41,7 @@ class _BeviTabState extends State<BeviTab> {
     _initializeApp();
     intervalController =
         TextEditingController(text: intervalloNotificheBere.toString());
+    _loadSavedSwitchesState(); // Load switches state on initialization
   }
 
   Future<void> _initializeApp() async {
@@ -39,7 +55,7 @@ class _BeviTabState extends State<BeviTab> {
     setState(() {
       intervalloNotificheBere = savedInterval;
       intervalController.text = savedInterval.toString();
-      debugPrint('Loaded from shared prefs: $intervalloNotificheBere minute/s');
+      debugPrint('[MORENO SHARED PREF] Loaded from shared prefs: $intervalloNotificheBere minute/s');
     });
   }
 
@@ -54,7 +70,7 @@ class _BeviTabState extends State<BeviTab> {
       notificationService.startNotificationLoop(
           intervalloNotificheBere, notificationSound);
       debugPrint(
-          '[MORENO BEVI_TAB]Notification interval for drinking: $intervalloNotificheBere minute/s');
+          '[MORENO BEVI_TAB]Notification interval started for drinking: $intervalloNotificheBere minute/s');
     } else {
       notificationService.stopNotificationLoop();
       debugPrint('[MORENO BEVI_TAB]Notification loop stopped');
@@ -109,12 +125,8 @@ class _BeviTabState extends State<BeviTab> {
 
               // Save the new interval
               await _saveInterval(intervalloNotificheBere);
-              debugPrint('[MORENO BEVI_TAB]Interval saved and started: $intervalloNotificheBere minute/s');
+              debugPrint('[MORENO BEVI_TAB]Interval saved: $intervalloNotificheBere minute/s');
 
-              // Imposta lo switch su true (attivo)
-              setState(() {
-                serviceActive = true;
-              });
 
               // Chiudi la tastiera
               FocusManager.instance.primaryFocus?.unfocus();
@@ -174,6 +186,8 @@ class _BeviTabState extends State<BeviTab> {
 
                             debugPrint(
                                 '[MORENO BEVI_TAB] Sound notification is ${notificationSound ? 'enabled' : 'disabled'}');
+                            _saveSwitchesState(); // Save switches state when it changes
+
                           },
                         ),
                       ],
@@ -216,6 +230,8 @@ class _BeviTabState extends State<BeviTab> {
                             });
                             notificationService.stopNotificationLoop();
                             _startNotificationLoop();
+                            _saveSwitchesState(); // Save switches state when it changes
+
                           },
                         ),
                       ],
