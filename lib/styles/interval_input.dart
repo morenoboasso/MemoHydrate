@@ -3,17 +3,19 @@ import 'package:flutter/services.dart';
 
 class IntervalInput extends StatelessWidget {
   const IntervalInput({
-    Key? key,
+    super.key,
     required this.intervalloNotificheBere,
     required this.onIntervalChanged,
     required this.onSavePressed,
     required this.labelText,
-  }) : super(key: key);
+    required this.intervalController,
+  });
 
   final int intervalloNotificheBere;
   final ValueChanged<String> onIntervalChanged;
   final VoidCallback onSavePressed;
   final String labelText;
+  final TextEditingController intervalController;
 
   @override
   Widget build(BuildContext context) {
@@ -30,12 +32,13 @@ class IntervalInput extends StatelessWidget {
                   child: SizedBox(
                     height: 50,
                     child: TextFormField(
+                      controller: intervalController,
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.black, fontSize: 18),
                       cursorColor: Colors.blueGrey,
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d*$'), // Accetta solo numeri
+                          RegExp(r'^\d*$'), // Accept only numbers
                         ),
                       ],
                       decoration: InputDecoration(
@@ -62,26 +65,35 @@ class IntervalInput extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 20.0),
                   child: ElevatedButton(
                     onPressed: () {
-                      if (intervalloNotificheBere != 0) {
+                      int newInterval = int.tryParse(intervalController.text) ?? 0;
+                      // Accept only values from 15 to 1440 , per test metti 1
+                      if (newInterval >= 1 && newInterval <= 1440) {
                         onSavePressed();
 
-                        // Mostra un messaggio di avviso
+                        // Show a success message
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Intervallo cambiato a $intervalloNotificheBere minuti!',textAlign: TextAlign.center),
-                            duration: const Duration(seconds: 3), // Modifica la durata se necessario
+                            content: Text(formatIntervalMessage(newInterval)),
+                            duration: const Duration(seconds: 3),
                             behavior: SnackBarBehavior.floating,
-                            backgroundColor: Colors.green, // Imposta il colore dello sfondo
+                            backgroundColor: Colors.green,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10.0),
                             ),
                             elevation: 8.0,
+                            action: SnackBarAction(
+                              label: '✖',
+                              textColor: Colors.white,
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              },
+                            ),
                           ),
                         );
                       } else {
-                        // Mostra una notifica d'errore
+                        // Show an error message
                         final snackBar = SnackBar(
-                          content: const Text('Attenzione! L\'intervallo delle notifiche non può essere 0', textAlign: TextAlign.center),
+                          content: const Text('Please enter a value between 15 minutes and 24 hours', textAlign: TextAlign.center),
                           backgroundColor: Colors.redAccent,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
@@ -89,10 +101,9 @@ class IntervalInput extends StatelessWidget {
                           behavior: SnackBarBehavior.floating,
                           elevation: 8.0,
                           action: SnackBarAction(
-                            label: 'Chiudi',
+                            label: '✖',
                             textColor: Colors.white,
                             onPressed: () {
-                              // Azione da eseguire quando si preme il pulsante Chiudi
                               ScaffoldMessenger.of(context).hideCurrentSnackBar();
                             },
                           ),
@@ -101,6 +112,7 @@ class IntervalInput extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(snackBar);
                       }
                     },
+
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueGrey,
                       shape: RoundedRectangleBorder(
@@ -113,7 +125,7 @@ class IntervalInput extends StatelessWidget {
                         Icon(Icons.save_outlined, color: Colors.white, size: 20),
                         SizedBox(width: 4.0),
                         Text(
-                          'Salva',
+                          'Save',
                           style: TextStyle(color: Colors.white),
                         ),
                       ],
@@ -127,4 +139,25 @@ class IntervalInput extends StatelessWidget {
       ),
     );
   }
+  String formatIntervalMessage(int minutes) {
+    if (minutes > 60) {
+      int hours = minutes ~/ 60;
+      int remainingMinutes = minutes % 60;
+
+      String hoursText = hours == 1 ? 'hour' : 'hours';
+      String minutesText = remainingMinutes == 1 ? 'minute' : 'minutes';
+
+      if (remainingMinutes == 0) {
+        return 'Intervallo settato su: $hours $hoursText';
+      } else {
+        return 'Intervallo settato su: $hours $hoursText and ${remainingMinutes.toString().padLeft(2)} $minutesText';
+      }
+    } else {
+      String minutesText = minutes == 1 ? 'minute' : 'minutes';
+      return 'Intervallo settato su: $minutes $minutesText';
+    }
+  }
+
+
+
 }

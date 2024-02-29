@@ -67,7 +67,7 @@ class NotificationService {
           styleInformation: const BigTextStyleInformation(''),
           playSound: notificationSound ? true : false,
           sound: notificationSound
-              ? const RawResourceAndroidNotificationSound('glass')
+              ? null
               : const RawResourceAndroidNotificationSound('silent'),
           enableVibration: true,
           vibrationPattern: Int64List.fromList([500, 500, 500]),
