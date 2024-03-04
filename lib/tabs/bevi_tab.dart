@@ -318,7 +318,7 @@ class _BeviTabState extends State<BeviTab> {
                             });
                             notificationService.stopNotificationLoop();
                             _startNotificationLoop();
-                            _saveSwitchesState(); // Save switches state when it changes
+                            _saveSwitchesState();
                           },
                         ),
                       ],
@@ -328,6 +328,8 @@ class _BeviTabState extends State<BeviTab> {
               ],
             ),
           ),
+          const SizedBox(height: 15),
+          const Divider(endIndent: 20,indent: 20,color: Colors.black,thickness: 0.5,)
         ],
       ),
     );
